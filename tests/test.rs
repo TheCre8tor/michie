@@ -56,20 +56,21 @@ fn f(_a: bool, b: usize) -> usize {
         inference_hint::<_, usize, ::std::collections::HashMap<_, usize>>(&key, &store);
         ::std::boxed::Box::new(store)
     });
-    let store: &(dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync) =
-        store.as_ref();
-    let store: &::std::collections::HashMap<_, usize> = {
-        fn downcast_ref_with_inference_hint<T: 'static>(
-            store: &(dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync),
+    let store: &mut (dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync) =
+        store.as_mut();
+    let store: &mut ::std::collections::HashMap<_, usize> = {
+        fn downcast_mut_with_inference_hint<T: 'static>(
+            store: &mut (dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync),
             _store_init: fn() -> T,
-        ) -> ::core::option::Option<&T> {
-            store.downcast_ref::<T>()
+        ) -> ::core::option::Option<&mut T> {
+            store.downcast_mut::<T>()
         }
-        downcast_ref_with_inference_hint::<::std::collections::HashMap<_, usize>>(store, || {
+        downcast_mut_with_inference_hint::<::std::collections::HashMap<_, usize>>(store, || {
             ::core::default::Default::default()
         })
         .unwrap()
     };
+    |value: usize| ::michie::MemoizationStore::insert(store, key, value);
     let attempt: ::core::option::Option<usize> =
         ::michie::MemoizationStore::get(store, &key).cloned();
     ::core::mem::drop(type_map_mutex_guard);
