@@ -119,7 +119,7 @@ fn expand_fn_block(original_fn_block: Block, return_type: Type, attr_args: AttrA
             }
             obtain_type_id_with_inference_hint::<#key_type, #return_type>(#key_ref)
         };
-        let store: &::std::boxed::Box<#store_trait_object> = type_map_mutex_guard
+        let store: &mut ::std::boxed::Box<#store_trait_object> = type_map_mutex_guard
             .entry(type_id)
             .or_insert_with(|| {
                 let store: #store_type = #store_init;
