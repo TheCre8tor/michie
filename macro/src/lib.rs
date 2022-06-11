@@ -139,7 +139,7 @@ fn expand_fn_block(original_fn_block: Block, return_type: Type, attr_args: AttrA
             }
             downcast_mut_with_inference_hint::<#store_type>(store, || #store_init).unwrap()
         };
-        |value: #return_type| ::michie::MemoizationStore::insert(store, #key, value)
+        |value: #return_type| ::michie::MemoizationStore::insert(store, #key, value);
         // At this point, while an exclusive lock is still in place, a read lock would suffice.
         // However, since the concrete store is already obtained and since presumably the
         // following `::get` should be cheap, releasing the exclusive lock, obtaining a read lock
