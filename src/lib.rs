@@ -9,7 +9,7 @@ use std::{
 /// See [crate level documentation](crate).
 pub use michie_macro::memoized;
 
-pub trait MemoizationStore<K, Q, R>
+pub trait MemoizationStore<K, R, Q = K>
 where
     Q: ?Sized,
     K: Borrow<Q>
@@ -18,7 +18,7 @@ where
     fn get(&self, key: &Q) -> Option<&R>;
 }
 
-impl<K, Q, R> MemoizationStore<K, Q, R> for HashMap<K, R>
+impl<K, R, Q> MemoizationStore<K, R, Q> for HashMap<K, R>
 where
     K: Eq + Hash + Borrow<Q>,
     Q: Hash + Eq + ?Sized,
@@ -32,7 +32,7 @@ where
     }
 }
 
-impl<K, Q, R> MemoizationStore<K, Q, R> for BTreeMap<K, R>
+impl<K, R, Q> MemoizationStore<K, R, Q> for BTreeMap<K, R>
 where
     K: Ord + Borrow<Q>,
     Q: Ord + ?Sized
