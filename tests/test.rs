@@ -20,6 +20,130 @@ fn on_a_generic_fn_in_an_impl_block() {
     where
         T: 'static + Clone + Send + Sync + Eq + Hash,
     {
+        fn f_<U>(&self, b: U) -> (T, U)
+        where
+            U: 'static + Clone + Send + Sync + Eq + Hash,
+        {
+            static mut STORES: ::core::mem::MaybeUninit<
+                ::std::sync::Mutex<
+                    ::std::collections::HashMap<
+                        ::core::any::TypeId,
+                        ::std::boxed::Box<
+                            (dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync),
+                        >,
+                    >,
+                >,
+            > = ::core::mem::MaybeUninit::uninit();
+            static STORES_INIT: ::std::sync::Once = ::std::sync::Once::new();
+            STORES_INIT.call_once(|| {
+                let store: ::std::sync::Mutex<
+                    ::std::collections::HashMap<
+                        ::core::any::TypeId,
+                        ::std::boxed::Box<
+                            (dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync),
+                        >,
+                    >,
+                > = ::core::default::Default::default();
+                unsafe {
+                    STORES.write(store);
+                }
+            });
+            let type_map_mutex: &::std::sync::Mutex<
+                ::std::collections::HashMap<
+                    ::core::any::TypeId,
+                    ::std::boxed::Box<
+                        (dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync),
+                    >,
+                >,
+            > = unsafe { STORES.assume_init_ref() };
+            let key: _ = (self.a.clone(), b.clone());
+            let mut type_map_mutex_guard: ::std::sync::MutexGuard<
+                ::std::collections::HashMap<
+                    ::core::any::TypeId,
+                    ::std::boxed::Box<
+                        (dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync),
+                    >,
+                >,
+            > = type_map_mutex
+                .lock()
+                .expect("handling of poisoning is not supported");
+            let type_id: ::core::any::TypeId = {
+                fn obtain_type_id_with_inference_hint<K: 'static, R: 'static>(
+                    _k: &K,
+                ) -> ::core::any::TypeId {
+                    ::core::any::TypeId::of::<(K, R)>()
+                }
+                obtain_type_id_with_inference_hint::<_, (T, U)>(&key)
+            };
+            let store: &mut ::std::boxed::Box<
+                (dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync),
+            > = type_map_mutex_guard.entry(type_id).or_insert_with(|| {
+                let store: ::std::collections::HashMap<_, (T, U)> =
+                    ::core::default::Default::default();
+                fn inference_hint<K, R, S: ::michie::MemoizationStore<K, R>>(_k: &K, _s: &S) {}
+                inference_hint::<_, (T, U), ::std::collections::HashMap<_, (T, U)>>(&key, &store);
+                ::std::boxed::Box::new(store)
+            });
+            let store: &mut (dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync) =
+                store.as_mut();
+            let store: &mut ::std::collections::HashMap<_, (T, U)> = {
+                fn downcast_mut_with_inference_hint<T: 'static>(
+                    store: &mut (dyn ::core::any::Any
+                              + ::core::marker::Send
+                              + ::core::marker::Sync),
+                    _store_init: fn() -> T,
+                ) -> ::core::option::Option<&mut T> {
+                    store.downcast_mut::<T>()
+                }
+                downcast_mut_with_inference_hint::<::std::collections::HashMap<_, (T, U)>>(
+                    store,
+                    || ::core::default::Default::default(),
+                )
+                .unwrap()
+            };
+            let attempt: ::core::option::Option<(T, U)> =
+                ::michie::MemoizationStore::get(store, &key).cloned();
+            //|value: (T, U)| ::michie::MemoizationStore::insert(store, key, value);
+            ::core::mem::drop(type_map_mutex_guard);
+            if let ::core::option::Option::Some(hit) = attempt {
+                hit
+            } else {
+                let miss: (T, U) = { (self.a.clone(), b) };
+                let mut type_map_mutex_guard: ::std::sync::MutexGuard<
+                    ::std::collections::HashMap<
+                        ::core::any::TypeId,
+                        ::std::boxed::Box<
+                            (dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync),
+                        >,
+                    >,
+                > = type_map_mutex
+                    .lock()
+                    .expect("handling of poisoning is not supported");
+                let store: &mut ::std::boxed::Box<
+                    (dyn ::core::any::Any + ::core::marker::Send + ::core::marker::Sync),
+                > = type_map_mutex_guard.get_mut(&type_id).unwrap();
+                let store: &mut (dyn ::core::any::Any
+                          + ::core::marker::Send
+                          + ::core::marker::Sync) = store.as_mut();
+                let store: &mut ::std::collections::HashMap<_, (T, U)> = {
+                    fn downcast_mut_with_inference_hint<T: 'static>(
+                        store: &mut (dyn ::core::any::Any
+                                  + ::core::marker::Send
+                                  + ::core::marker::Sync),
+                        _store_init: fn() -> T,
+                    ) -> ::core::option::Option<&mut T> {
+                        store.downcast_mut::<T>()
+                    }
+                    downcast_mut_with_inference_hint::<::std::collections::HashMap<_, (T, U)>>(
+                        store,
+                        || ::core::default::Default::default(),
+                    )
+                    .unwrap()
+                };
+                ::michie::MemoizationStore::insert(store, key, ::core::clone::Clone::clone(&miss));
+                miss
+            }
+        }
         #[memoized(key_expr = (self.a.clone(), b.clone()))]
         fn f<U>(&self, b: U) -> (T, U)
         where
