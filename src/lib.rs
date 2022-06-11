@@ -34,12 +34,13 @@ where
 
 impl<K, Q, R> MemoizationStore<K, Q, R> for BTreeMap<K, R>
 where
-    K: Ord,
+    K: Ord + Borrow<Q>,
+    Q: Ord + ?Sized
 {
     fn insert(&mut self, key: K, value: R) {
         BTreeMap::insert(self, key, value);
     }
-    fn get(&self, key: &K) -> Option<&R> {
+    fn get(&self, key: &Q) -> Option<&R> {
         BTreeMap::get(self, key)
     }
 }
