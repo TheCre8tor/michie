@@ -12,31 +12,27 @@ pub use michie_macro::memoized;
 pub trait MemoizationStore<K, Q, R>
 where
     Q: ?Sized,
+    K: Borrow<Q>
 {
     fn insert(&mut self, key: K, value: R);
-    fn get(&self, key: &Q) -> Option<&R>
-    where
-        K: Borrow<Q>;
+    fn get(&self, key: &Q) -> Option<&R>;
 }
 
 impl<K, Q, R> MemoizationStore<K, Q, R> for HashMap<K, R>
 where
-    K: Eq + Hash,
-    Q: Hash + Eq,
-    Q: ?Sized,
+    K: Eq + Hash + Borrow<Q>,
+    Q: Hash + Eq + ?Sized,
 {
     fn insert(&mut self, key: K, value: R) {
         HashMap::insert(self, key, value);
     }
     fn get(&self, key: &Q) -> Option<&R>
-    where
-        K: Borrow<Q>,
     {
         HashMap::get(self, key)
     }
 }
 
-impl<K, R> MemoizationStore<K, R> for BTreeMap<K, R>
+impl<K, Q, R> MemoizationStore<K, Q, R> for BTreeMap<K, R>
 where
     K: Ord,
 {
