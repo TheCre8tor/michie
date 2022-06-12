@@ -129,7 +129,7 @@ fn expand_fn_block(original_fn_block: Block, return_type: Type, attr_args: AttrA
             });
         let store: &mut #store_trait_object = store.as_mut();
         // type is known to be `#store_type` because value is obtained via the above
-        // `HashMap::get_mut` call with `TypeId::of::<(#key_type, #return_type)>`
+        // `HashMap::entry` call with `TypeId::of::<(#key_type, #return_type)>`
         let store: &mut #store_type = {
             fn downcast_mut_with_inference_hint<T: 'static>(
                 store: &mut #store_trait_object,
