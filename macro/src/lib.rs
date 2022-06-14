@@ -38,7 +38,7 @@ fn obtain_return_type(return_type: ReturnType) -> syn::Result<Type> {
     match return_type {
         syn::ReturnType::Type(_, return_type) => Ok(*return_type),
         syn::ReturnType::Default => Err(syn::Error::new(
-            return_type.span(),
+            Span::call_site(),
             "default return types are not supported",
         )),
     }
