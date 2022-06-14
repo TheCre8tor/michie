@@ -4,7 +4,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote_spanned, ToTokens};
 use syn::{
     parse2, parse_quote, parse_quote_spanned, spanned::Spanned, Block, Expr, Ident, ImplItemMethod,
-    ReturnType, Signature, Type, token::Impl,
+    ReturnType, Signature, Type
 };
 
 #[proc_macro_attribute]
@@ -38,7 +38,7 @@ fn obtain_return_type(return_type: ReturnType) -> syn::Result<Type> {
     match return_type {
         syn::ReturnType::Type(_, return_type) => Ok(*return_type),
         syn::ReturnType::Default => Err(syn::Error::new(
-            Span::mixed_site().located_at(constness.span()),
+            return_type.span(),
             "default return types are not supported",
         )),
     }
